@@ -1,0 +1,258 @@
+import tkinter
+import threading
+import random
+import time
+
+WIDTH = 640
+HEIGTH = 640
+
+
+def nacitaj_mapu(cesta):
+
+    h = open(cesta)
+
+    sirka = int(h.readline())
+
+    vyska = int(h.readline())
+
+    mapa = []
+    pac_found = 0
+    duch_found = 0
+
+    # pre kazdy riadok mapy precitaj kazdy riadok a vytvor z nich zoznam (rozsah je po vysku)
+    for y in range(0, 12):
+        citat = h.readline()
+        mapa.append(list(citat))
+
+    h.close()
+    for y in range(0, vyska):
+        if pac_found and duch_found:
+            break;
+        for x in range(0, sirka):
+
+            if mapa[y][x] == 'v':
+                mapa[y][x] = ' '
+                pac_x = x
+                pac_y = y
+                pac_found = True
+            elif mapa[y][x] == 'm':
+                mapa[y][x] = ' '
+                duch_x = x
+                duch_y = y
+                duch_found = True
+
+            if pac_found and duch_found:
+                break;
+
+    return sirka, vyska, mapa, pac_x, pac_y, duch_x, duch_y
+
+######################################################
+
+def vytvor_platno(okno, mapa, vyska, sirka, cell_size, photoimage):
+
+
+    platno = tkinter.Canvas(okno, width=sirka * cell_size, height=vyska * cell_size)
+
+    platno.config(bg='red')
+
+    platno.pack()
+
+    for y in range(0, vyska):
+        for x in range(0, sirka):
+            if mapa[y][x] == '#':
+                platno.create_image(x * cell_size + cell_size / 2, \
+                                    y * cell_size + cell_size / 2, \
+                                    image=photoimage)
+
+    return platno
+
+def vytvor_gulicky(platno, sirka, vyska, mapa, gulicka, cell_size):
+        gulicky = []
+        for y in range(0, vyska):
+            for x in range(0, sirka):
+                if mapa[y][x] == 'c':
+                    obr = platno.create_image(x * cell_size + cell_size / 2, \
+                                              y * cell_size + cell_size / 2, \
+                                              image=gulicka)
+                    gulicky.append([x, y, obr])
+
+
+
+
+
+
+def pacmanmove(event):
+
+    global pac_x
+    global pac_y
+    global platno
+    global pacman
+    global cell_size
+    global mapa
+    global skore
+    global gulicky
+    global okno
+    global duch_y
+    global duch_x
+    target_x = pac_x
+    target_y = pac_y
+    tarduch_x = duch_x
+    tarduch_y = duch_y
+
+    if event.keysym == 'Up':
+        target_y -= 1
+
+    elif event.keysym == 'Down':
+        target_y += 1
+
+    elif event.keysym == 'Left':
+        target_x -= 1
+
+    elif event.keysym == 'Right':
+        target_x += 1
+
+    if mapa[target_y][target_x] != '#':
+        pac_x = target_x
+        pac_y = target_y
+        platno.coords(pacman, \
+                target_x * cell_size + cell_size / 2, \
+                target_y * cell_size + cell_size / 2)
+
+    if mapa[target_y][target_x] == 'm':
+        global score
+        score = score+1
+        label.config(text="Score:{}".format(score))
+
+        platno.delete('coin.png')
+
+    while True:
+        for x in range(0, 20):
+            platno.move(duch, 5, 0)
+            okno.update()
+            time.sleep(0.05)
+
+        for x in range(1, 40):
+            platno.move(duch2, -5, 0)
+            okno.update()
+            time.sleep(0.05)
+
+        for x in range(0, 20):
+            platno.move(duch, -5, 0)
+            okno.update()
+            time.sleep(0.05)
+
+        for x in range(0, 20):
+            platno.move(duch2, 0, -5)
+            okno.update()
+            time.sleep(0.05)
+
+
+
+        for x in range(0, 20):
+            platno.move(duch2, 5, 0)
+            okno.update()
+            time.sleep(0.05)
+
+        for x in range(0, 20):
+            platno.move(duch, 0, 5)
+            okno.update()
+            time.sleep(0.05)
+
+        for x in range(0, 20):
+            platno.move(duch2, -5, 0)
+            okno.update()
+            time.sleep(0.05)
+
+        for x in range(0, 20):
+            platno.move(duch, 0, -5)
+            okno.update()
+            time.sleep(0.05)
+
+
+
+
+
+
+
+
+
+mapa = []
+
+pac_x = 0
+pac_y = 0
+
+duch_x = 0
+duch_y = 0
+
+
+sirka = 20
+vyska = 0
+
+cell_size = 80
+
+okno = tkinter.Tk()
+okno.title('bludisko')
+window_width = okno.winfo_width()
+
+window_height = okno.winfo_height()
+
+screen_width = okno.winfo_screenwidth()
+
+screen_height = okno.winfo_screenheight()
+
+
+
+x = int((screen_width/2) - (window_width/2))
+
+y = int((screen_height/2) - (window_height/2))
+
+sirka, vyska, mapa, pac_x, pac_y, duch_x, duch_y = nacitaj_mapu('textak.txt')
+
+photoimage = tkinter.PhotoImage(file='wall.gif')
+
+platno = vytvor_platno(okno, mapa, vyska, sirka, cell_size, photoimage)
+
+gulicka = tkinter.PhotoImage(file='coin.png')
+
+
+hlava = tkinter.PhotoImage(file='duck.png')
+pacman = platno.create_image (pac_x * cell_size + cell_size / 2, \
+                              pac_y * cell_size + cell_size / 2, \
+                              image=hlava)
+
+strasidlo = tkinter.PhotoImage(file='duch.png')
+duch = platno.create_image(duch_x * cell_size + cell_size / 2, \
+                           duch_y * cell_size + cell_size / 2, \
+                           image=strasidlo)
+
+strasidlo2 = tkinter.PhotoImage(file='duch2.png')
+duch2 = platno.create_image(duch_x * cell_size + cell_size / 2, \
+                           duch_y * cell_size + cell_size / 2, \
+                           image=strasidlo2)
+
+
+score = 0
+
+direction = 'down'
+
+
+
+label = tkinter.Label (okno, text="Score:{}".format(score), font=('consolas', 40))
+
+label.pack()
+gulicky = vytvor_gulicky(platno, sirka, vyska, mapa, gulicka, cell_size)
+
+duch_smer = 3
+terminate = False
+
+platno.bind_all('<KeyPress-Up>', pacmanmove)
+platno.bind_all('<KeyPress-Down>', pacmanmove)
+platno.bind_all('<KeyPress-Left>', pacmanmove)
+platno.bind_all('<KeyPress-Right>', pacmanmove)
+platno.bind_all('<KeyPress-Escape>', lambda key: okno.destroy())
+
+
+okno.mainloop()
+
+
+terminate = True
