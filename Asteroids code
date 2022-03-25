@@ -1,0 +1,107 @@
+import pygame
+import math
+
+pygame.init()
+screen_w = 1000
+screen_h = 1000
+
+bg = pygame.image.load('space_bg.png')
+playerShip = pygame.image.load('spaceship.png')
+
+pygame.display.set_caption('Asteroids')
+
+win = pygame.display.set_mode((screen_w, screen_h))
+
+clock = pygame.time.Clock()
+
+
+
+
+class Player(object):
+    def __init__(self):
+        #davame rakete hodnoty: vysku, sirku, x a y hodnotu
+        self.img = playerShip
+        self.w = self.img.get_width()
+        self.h = self.img.get_height()
+        #v strede obrazovky
+        self.x = screen_w//2
+        self.y = screen_h//2
+        #o kolko stupnov budeme rotovat
+        self.angle = 0
+        #funkcia na otacanie                        co rotujeme, o kolko
+        self.rotatedSurf = pygame.transform.rotate(self.img, self.angle)
+        #rect(rectangle) skladuje poziciu nasej lode
+        self.rotatedRect = self.rotatedSurf.get_rect()
+        #premiestnujeme centrum nasej lode na jej stred
+        self.rotatedRect.center = (self.x, self.y)
+        #mame hodnoty sinus a cosinus, ktore budu reprezentovat nas uhol v radianoch
+        self.cosine = math.cos(math.radians(self.angle + 90))
+        self.sine = math.sin(math.radians(self.angle + 90))
+        self.head = (self.x + self.cosine * self.w//2, self.y - self.sine * self.h//2)
+
+
+    def draw(self, win):
+    #     ktorym smerom smeruje, hodnoty lode(x, y)
+        win.blit( self.rotatedSurf, self.rotatedRect)
+
+    def turnLeft(self):
+        #ked so otocime dolava, tak pridame +5 do nasej self.angle hodnoty
+        self.angle += 5
+        #potom musime updatnut vsetky nase ostatne hodnoty
+        self.rotatedSurf = pygame.transform.rotate(self.img, self.angle)
+        self.rotatedRect = self.rotatedSurf.get_rect()
+        self.rotatedRect.center = (self.x, self.y)
+        self.cosine = math.cos(math.radians(self.angle + 90))
+        self.sine = math.sin(math.radians(self.angle + 90))
+        self.head = (self.x + self.cosine * self.w//2, self.y - self.sine * self.h//2)
+
+    def turnRight(self):
+        #to iste aj tu len odpocitame 5
+        self.angle -= 5
+        self.rotatedSurf = pygame.transform.rotate(self.img, self.angle)
+        self.rotatedRect = self.rotatedSurf.get_rect()
+        self.rotatedRect.center = (self.x, self.y)
+        self.cosine = math.cos(math.radians(self.angle + 90))
+        self.sine = math.sin(math.radians(self.angle + 90))
+        self.head = (self.x + self.cosine * self.w//2, self.y - self.sine * self.h//2)
+
+
+    def moveForward(self):
+        self.x += self.cosine * 6
+        self.y -= self.sine * 6
+        self.rotatedSurf = pygame.transform.rotate(self.img, self.angle)
+        self.rotatedRect = self.rotatedSurf.get_rect()
+        self.rotatedRect.center = (self.x, self.y)
+        self.cosine = math.cos(math.radians(self.angle + 90))
+        self.sine = math.sin(math.radians(self.angle + 90))
+        self.head = (self.x + self.cosine * self.w // 2, self.y - self.sine * self.h // 2)
+
+def redrawGameWindow():
+    #nastavanie backgroundu
+    #blit = copy objects from one surface to another
+    win.blit(bg, (0,0))
+    player.draw(win)
+    pygame.display.update()
+gameover = False
+player = Player()
+run = True
+while run:
+    #nastavujeme FPS na 60
+    clock.tick(60)
+    if not gameover:
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            player.turnLeft()
+        if keys[pygame.K_RIGHT]:
+            player.turnRight()
+        if keys[pygame.K_UP]:
+            player.moveForward()
+        pass
+    #ukoncenie hry
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+
+    redrawGameWindow()
+
+pygame.quit()
